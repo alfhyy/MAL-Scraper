@@ -25,35 +25,43 @@ public class AnimeScraper {
         System.out.print("Enter a genre (e.g., action, romance, comedy): ");
         String userGenre = input.nextLine().trim().toLowerCase();
 
-        if (!genreMap.containsKey(userGenre)) {
-            System.out.println("Genre not recognized. Please try again with a valid genre.");
-            return;
-        }
+        String[] genres = userGenre.split(",");
 
-        int genreId = genreMap.get(userGenre);
-        String url = "https://myanimelist.net/anime/genre/" + genreId;
-
-        try {
-            System.out.println("\nFetching Top 30 " + userGenre + " anime from MyAnimeList...");
-            Document doc = Jsoup.connect(url).get();
-
-            Elements animeTitles = doc.select(".anime-title"); // fallback selector
-            if (animeTitles.isEmpty()) {
-                animeTitles = doc.select(".seasonal-anime .link-title, .hoverinfo_trigger"); // alternate selector
+        for (String g : genres) {
+            String trimmed = g.trim();
+            if (!genreMap.containsKey(trimmed)) {
+                System.out.println("Genre not recognized: " + trimmed);
+                continue;
             }
 
-            int count = 0;
-            for (Element title : animeTitles) {
-                System.out.println((++count) + ". " + title.text());
-                if (count == 30) break; // Limit to top 30
-            }
+            int genreId = genreMap.get(trimmed);
+            String url = "https://myanimelist.net/anime/genre/" + genreId;
 
-            if (count == 0) {
-                System.out.println("No anime found or website structure changed.");
-            }
+            Thread thread = new Thread(() -> {
+                try {
+                    System.out.println("\nFetching Top 30 " + trimmed + " anime from MyAnimeList...");
+                    Document doc = Jsoup.connect(url).get();
 
-        } catch (Exception e) {
-            System.out.println("Error fetching data: " + e.getMessage());
+                    Elements animeTitles = doc.select("a.hoverinfo_trigger.fw-b.fl-l");
+                    if (animeTitles.isEmpty()) {
+                        animeTitles = doc.select(".seasonal-anime .link-title, .hoverinfo_trigger");
+                    }
+
+                    int count = 0;
+                    for (Element title : animeTitles) {
+                        System.out.println((++count) + ". " + title.text());
+                        if (count == 30) break;
+                    }
+
+                    if (count == 0) {
+                        System.out.println("No anime found for " + trimmed + " or website structure changed.");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error fetching " + trimmed + ": " + e.getMessage());
+                }
+            });
+
+            thread.start();
         }
     }
 }
