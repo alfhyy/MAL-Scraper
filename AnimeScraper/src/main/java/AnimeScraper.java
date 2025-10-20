@@ -39,7 +39,7 @@ public class AnimeScraper {
 
             Thread thread = new Thread(() -> {
                 try {
-                    System.out.println("\nFetching Top 30 " + trimmed + " anime from MyAnimeList...");
+                    System.out.println("\nFetching Top 15 " + trimmed + " anime from MyAnimeList...");
                     Document doc = Jsoup.connect(url).get();
 
                     Elements animeTitles = doc.select("a.hoverinfo_trigger.fw-b.fl-l");
@@ -50,7 +50,7 @@ public class AnimeScraper {
                     int count = 0;
                     for (Element title : animeTitles) {
                         System.out.println((++count) + ". " + title.text());
-                        if (count == 30) break;
+                        if (count == 15) break;
                     }
 
                     if (count == 0) {
